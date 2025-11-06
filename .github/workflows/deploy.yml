@@ -1,0 +1,51 @@
+name: CI & Deploy Hooks
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend deps
+        working-directory: .
+        run: |
+          npm ci
+
+      - name: Build frontend
+        working-directory: .
+        run: |
+          npm run build
+
+      - name: Build server
+        working-directory: server
+        run: |
+          npm ci
+          npm run build || true
+
+      - name: Trigger Vercel Deploy Hook (if configured)
+        if: env.VERCEL_DEPLOY_HOOK != ''
+        run: |
+          echo "Triggering Vercel deploy hook..."
+          curl -X POST -sS --fail "$VERCEL_DEPLOY_HOOK"
+
+      - name: Trigger Render Deploy Hook (if configured)
+        if: env.RENDER_DEPLOY_HOOK != ''
+        run: |
+          echo "Triggering Render deploy hook..."
+          curl -X POST -sS --fail "$RENDER_DEPLOY_HOOK"
+
+      - name: Done
+        run: echo "CI completed"
