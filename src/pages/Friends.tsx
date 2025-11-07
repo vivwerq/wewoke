@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -87,8 +89,8 @@ const Friends = () => {
     <div className="min-h-screen bg-background">
       <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
       
-      <header className="relative border-b border-border glass-morphism">
-        <div className="container max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <Header
+        left={(
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-5 h-5" />
@@ -96,8 +98,8 @@ const Friends = () => {
             <Users className="w-6 h-6 text-primary" />
             <h1 className="text-2xl font-bold">Friends</h1>
           </div>
-        </div>
-      </header>
+        )}
+      />
 
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <Tabs defaultValue="friends">

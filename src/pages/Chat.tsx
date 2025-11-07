@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -127,20 +129,24 @@ const Chat = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
       
-      <header className="relative border-b border-border glass-morphism z-10">
-        <div className="container max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/friends")}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-            <User className="w-5 h-5" />
+      <Header
+        left={(
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/friends")}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
+              <User className="w-5 h-5" />
+            </div>
           </div>
+        )}
+        title={(
           <div>
             <h2 className="font-semibold">{friendName}</h2>
             <p className="text-xs text-muted-foreground">Friend</p>
           </div>
-        </div>
-      </header>
+        )}
+      />
 
       <div className="flex-1 relative overflow-hidden">
         <div className="container max-w-4xl mx-auto h-full flex flex-col px-4 py-6">

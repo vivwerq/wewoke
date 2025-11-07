@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -67,17 +69,22 @@ const Moderation = () => {
     <div className="min-h-screen bg-background">
       <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
       
-      <header className="relative border-b border-border glass-morphism">
-        <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <Header
+        left={(
           <div className="flex items-center gap-3">
             <Shield className="w-6 h-6 text-primary" />
             <h1 className="text-2xl font-bold">Moderation Dashboard</h1>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            Back to Dashboard
-          </Button>
-        </div>
-      </header>
+        )}
+        right={(
+          <>
+            <ThemeToggle />
+            <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+              Back to Dashboard
+            </Button>
+          </>
+        )}
+      />
 
       <div className="container max-w-6xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={(v) => {

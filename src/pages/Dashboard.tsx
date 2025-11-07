@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Header from "@/components/Header";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,12 +34,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
       
-      {/* Header */}
-      <header className="relative border-b border-border glass-morphism">
-        <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
-            VibeCast
-          </h1>
+      <Header
+        left={<h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">VibeCast</h1>}
+        right={(
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/friends")}>
               <Users className="w-5 h-5" />
@@ -45,6 +44,7 @@ const Dashboard = () => {
             <Button variant="ghost" size="icon">
               <Settings className="w-5 h-5" />
             </Button>
+            <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => {
               localStorage.removeItem("userProfile");
               navigate("/");
@@ -52,8 +52,8 @@ const Dashboard = () => {
               <LogOut className="w-5 h-5" />
             </Button>
           </div>
-        </div>
-      </header>
+        )}
+      />
 
       <div className="container max-w-6xl mx-auto px-4 py-12">
         <div className="grid lg:grid-cols-3 gap-8">
