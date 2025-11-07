@@ -1,8 +1,8 @@
-# VibeCast - Feature Summary
+# Wewoke - Feature Summary
 
 ## Completed Implementation
 
-This document provides a high-level overview of all features implemented in this pull request.
+High-level overview of all features implemented.
 
 ## 1. Backend Infrastructure
 

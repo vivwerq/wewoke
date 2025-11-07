@@ -2,6 +2,8 @@ import express from 'express';
 import crypto from 'crypto';
 import requireAuth from '../middleware/requireAuth.js';
 import requireSessionAuth from '../middleware/requireSessionAuth.js';
+import rateLimit from '../middleware/rateLimit.js';
+import { supabase } from '../lib/supabase.js';
 
 const router = express.Router();
 
@@ -11,7 +13,7 @@ const router = express.Router();
  * If TURN_SHARED_SECRET is not set but TURN_USERNAME and TURN_PASSWORD are present,
  * returns the static credentials (less secure).
  */
-router.get('/turn-credentials', requireAuth, (req, res) => {
+router.get('/turn-credentials', requireAuth, rateLimit, async (req, res) => {
   const TURN_URL = process.env.TURN_SERVER_URL; // e.g. turn.your-domain.com:3478
   const sharedSecret = process.env.TURN_SHARED_SECRET;
   const staticUser = process.env.TURN_USERNAME;
@@ -21,16 +23,31 @@ router.get('/turn-credentials', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'TURN_SERVER_URL not configured' });
   }
 
+  // If the request carried a logged-in user (middleware may attach req.user), check profile ban status.
+  try {
+    const userId = (req as any).user?.id || req.query.userId;
+    if (userId) {
+      // Attempt to read is_banned from profiles; if column doesn't exist, supabase will return an error and we'll allow.
+      try {
+        // @ts-ignore
+        const { data, error } = await supabase.from('profiles').select('is_banned').eq('user_id', userId).maybeSingle();
+        if (!error && data && (data as any).is_banned) {
+          return res.status(403).json({ error: 'User is banned' });
+        }
+      } catch (err) {
+        // If the column doesn't exist or query fails, log and continue (backwards compatibility)
+        console.warn('Could not check profile ban status:', err);
+      }
+    }
+  } catch (err) {
+    console.warn('Profile ban check failed:', err);
+  }
+
   // If shared secret is configured, issue time-limited credentials per coturn REST style
   if (sharedSecret) {
-    // TTL in seconds
     const ttl = Number(process.env.TURN_EPHEMERAL_TTL || 300); // default 5 minutes
     const expiry = Math.floor(Date.now() / 1000) + ttl;
-
-    // username format: <expiry>:<optional-identifier>
     const username = String(expiry) + ':' + (req.query.userId || 'anon');
-
-    // credential is HMAC-SHA1 of username using shared secret, base64
     const hmac = crypto.createHmac('sha1', sharedSecret).update(username).digest('base64');
 
     return res.json({
@@ -40,7 +57,6 @@ router.get('/turn-credentials', requireAuth, (req, res) => {
       urls: [
         `turn:${TURN_URL}?transport=udp`,
         `turn:${TURN_URL}?transport=tcp`,
-        // For TLS port if your coturn exposes 5349
         `turns:${TURN_URL}?transport=tcp`
       ]
     });
@@ -66,7 +82,7 @@ router.get('/turn-credentials', requireAuth, (req, res) => {
 // This endpoint is intended for cases where you want to ensure only logged-in users
 // can obtain TURN credentials. Behavior is identical to /turn-credentials but
 // requires a valid session token (TURN_REQUIRE_AUTH must also be true to activate).
-router.get('/turn-credentials-auth', requireSessionAuth, (req, res) => {
+router.get('/turn-credentials-auth', requireSessionAuth, rateLimit, async (req, res) => {
   const TURN_URL = process.env.TURN_SERVER_URL; // e.g. turn.your-domain.com:3478
   const sharedSecret = process.env.TURN_SHARED_SECRET;
   const staticUser = process.env.TURN_USERNAME;
@@ -74,6 +90,24 @@ router.get('/turn-credentials-auth', requireSessionAuth, (req, res) => {
 
   if (!TURN_URL) {
     return res.status(400).json({ error: 'TURN_SERVER_URL not configured' });
+  }
+
+  // At this point req.user should be populated by requireSessionAuth
+  try {
+    const userId = (req as any).user?.id;
+    if (userId) {
+      try {
+        // @ts-ignore
+        const { data, error } = await supabase.from('profiles').select('is_banned').eq('user_id', userId).maybeSingle();
+        if (!error && data && (data as any).is_banned) {
+          return res.status(403).json({ error: 'User is banned' });
+        }
+      } catch (err) {
+        console.warn('Could not check profile ban status:', err);
+      }
+    }
+  } catch (err) {
+    console.warn('Profile ban check failed:', err);
   }
 
   if (sharedSecret) {

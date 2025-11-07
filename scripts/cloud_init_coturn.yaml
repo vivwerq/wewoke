@@ -1,0 +1,26 @@
+#cloud-config
+# Cloud-init that installs coturn, certbot and runs the setup script with provided domain and shared secret.
+# Use with doctl or DigitalOcean user-data field. Replace placeholders before using.
+
+package_update: true
+packages:
+  - coturn
+  - certbot
+  - ufw
+
+write_files:
+  - path: /root/setup_coturn_runner.sh
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      DOMAIN="{{ domain }}"
+      SHARED_SECRET="{{ shared_secret }}"
+      # Fetch script from repo (assumes repo is public or you have a copy on the droplet)
+      if [ ! -f /root/setup_coturn.sh ]; then
+        curl -fsSL https://raw.githubusercontent.com/vivwerq/vibe-link-chat-83/main/scripts/setup_coturn.sh -o /root/setup_coturn.sh || true
+        chmod +x /root/setup_coturn.sh || true
+      fi
+      sudo bash /root/setup_coturn.sh "$DOMAIN" "$SHARED_SECRET"
+
+runcmd:
+  - [ bash, -c, "/root/setup_coturn_runner.sh" ]

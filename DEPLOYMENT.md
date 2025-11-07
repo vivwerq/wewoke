@@ -156,6 +156,9 @@ Security note: ephemeral TURN credentials are safer. Configure coturn with `use-
 - Add a small server endpoint to produce ephemeral TURN credentials (already added)
 
 Added artifacts in this repo by the assistant:
+... (see DO_DROPLET.md for a one-click droplet guide)
+
+Added artifacts in this repo by the assistant:
 - `scripts/setup_coturn.sh` — opinionated installer for coturn + certbot on Ubuntu droplets. Use with `sudo` on a fresh droplet. The script will try to obtain TLS certs and configure coturn with `static-auth-secret` (shared secret).
 - `server/src/routes/turn.ts` — endpoint available at `/api/webrtc/turn-credentials` that returns ephemeral HMAC credentials when `TURN_SHARED_SECRET` is configured. Falls back to static `TURN_USERNAME`/`TURN_PASSWORD` if present.
 - `server/src/middleware/requireAuth.ts` — optional middleware that, when `TURN_REQUIRE_AUTH=true`, requires an Authorization Bearer token and validates it against Supabase's `/auth/v1/user` endpoint.
